@@ -1,59 +1,38 @@
-services:
-  servidor-bd:
-    image: mysql:8.0
-    container_name: servidor-bd-ejemplo
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: "123456"
-      MYSQL_DATABASE: "sre_db"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - sre-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
+import os
+from flask import Flask, jsonify
+import pymysql
 
-  app-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: app-backend
-    restart: unless-stopped
-    environment:
-      DB_HOST: servidor-bd
-      DB_USER: root
-      DB_PASSWORD: "123456"
-      DB_NAME: sre_db
-    depends_on:
-      servidor-bd:
-        condition: service_healthy
-    expose:
-      - "5000"
-    networks:
-      - sre-network
+app = Flask(__name__)
 
-  nginx-proxy-manager:
-    image: jc21/nginx-proxy-manager:latest
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "81:81"
-      - "443:443"
-    volumes:
-      - npm_data:/data
-      - npm_letsencrypt:/etc/letsencrypt
-    networks:
-      - sre-network
 
-networks:
-  sre-network:
-    driver: bridge
+def get_connection():
+    return pymysql.connect(
+        host=os.getenv("DB_HOST", "servidor-bd"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME", "sre_db"),
+        cursorclass=pymysql.cursors.DictCursor
+    )
 
-volumes:
-  mysql_data:
-  npm_data:
-  npm_letsencrypt:
+
+@app.route("/")
+def home():
+    return jsonify({
+        "status": "ok",
+        "message": "API Flask funcionando"
+    }), 200
+
+
+@app.route("/health")
+def health():
+    connection = get_connection()
+    connection.close()
+
+    return jsonify({
+        "status": "ok",
+        "database": "connected"
+    }), 200
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
