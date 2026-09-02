@@ -29,9 +29,58 @@ jobs:
         run: |
           PYTHONPATH=. pytest -v
 
+
+  security:
+    name: Bandit SAST
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Bandit
+        run: |
+          pip install bandit
+
+      - name: Run Bandit
+        run: |
+          bandit -r app -ll
+
+
+  trivy:
+    name: Trivy Container Scan
+    needs: security
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t sre-flask:latest .
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "sre-flask:latest"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+
+
   deploy:
     name: Deploy EC2
-    needs: test
+    needs: trivy
     runs-on: ubuntu-latest
 
     steps:
