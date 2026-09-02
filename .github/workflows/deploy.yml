@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Pytest
         run: |
-          pytest -v
+          PYTHONPATH=. pytest -v
 
   deploy:
     name: Deploy EC2
