@@ -9,7 +9,7 @@ def get_connection():
     return pymysql.connect(
         host=os.getenv("MYSQL_HOST", "servidor-bd"),
         user=os.getenv("MYSQL_USER", "usuario"),
-        password="123456",
+        password=os.getenv("MYSQL_PASSWORD", "123456"),
         database=os.getenv("MYSQL_DATABASE", "adso_db"),
         cursorclass=pymysql.cursors.DictCursor
     )
