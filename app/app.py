@@ -7,10 +7,10 @@ app = Flask(__name__)
 
 def get_connection():
     return pymysql.connect(
-        host=os.getenv("MYSQL_HOST", "servidor-bd"),
-        user=os.getenv("MYSQL_USER", "usuario"),
-        password=os.getenv("MYSQL_PASSWORD", "123456"),
-        database=os.getenv("MYSQL_DATABASE", "adso_db"),
+        host=os.getenv("DB_HOST", "servidor-bd"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME", "sre_db"),
         cursorclass=pymysql.cursors.DictCursor
     )
 
