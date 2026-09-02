@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+      - feature/bad-security
+  pull_request:
+    branches:
+      - main
 
 jobs:
 
@@ -80,6 +84,7 @@ jobs:
 
   deploy:
     name: Deploy EC2
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: trivy
     runs-on: ubuntu-latest
 
